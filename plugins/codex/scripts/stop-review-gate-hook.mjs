@@ -92,6 +92,18 @@ function parseStopReviewOutput(rawOutput) {
     }
   }
 
+  // Fallback: search for verdict keywords anywhere in the text (model may use variants like "BLOCK-worthy")
+  const upperText = text.toUpperCase();
+  if (/\bBLOCK[\s-]*WORTHY\b/.test(upperText) || /\bTHIS IS BLOCK\b/.test(upperText)) {
+    return {
+      ok: false,
+      reason: `Codex stop-time review found issues that still need fixes before ending the session: ${text.slice(0, 300)}`
+    };
+  }
+  if (/\bALLOW\b/.test(upperText) && !/\bBLOCK\b/.test(upperText)) {
+    return { ok: true, reason: null };
+  }
+
   return {
     ok: false,
     reason:
