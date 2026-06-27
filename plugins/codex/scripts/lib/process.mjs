@@ -2,14 +2,22 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 
 export function runCommand(command, args = [], options = {}) {
-  const result = spawnSync(command, args, {
+  const useShell = process.platform === "win32" ? (process.env.SHELL || true) : false;
+  // On Windows, merge args into command string to avoid Node.js v25 DEP0190
+  // (spawnSync with args array + shell: true triggers the deprecation warning)
+  const effectiveCommand = useShell && args.length > 0
+    ? [command, ...args].join(" ")
+    : command;
+  const effectiveArgs = useShell && args.length > 0 ? [] : args;
+
+  const result = spawnSync(effectiveCommand, effectiveArgs, {
     cwd: options.cwd,
     env: options.env,
     encoding: "utf8",
     input: options.input,
     maxBuffer: options.maxBuffer,
     stdio: options.stdio ?? "pipe",
-    shell: process.platform === "win32" ? (process.env.SHELL || true) : false,
+    shell: useShell,
     windowsHide: true
   });
 
