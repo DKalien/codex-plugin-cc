@@ -76,16 +76,20 @@ function parseStopReviewOutput(rawOutput) {
     };
   }
 
-  const firstLine = text.split(/\r?\n/, 1)[0].trim();
-  if (firstLine.startsWith("ALLOW:")) {
-    return { ok: true, reason: null };
-  }
-  if (firstLine.startsWith("BLOCK:")) {
-    const reason = firstLine.slice("BLOCK:".length).trim() || text;
-    return {
-      ok: false,
-      reason: `Codex stop-time review found issues that still need fixes before ending the session: ${reason}`
-    };
+  // Search all lines for ALLOW or BLOCK verdict (model may emit preamble first)
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("ALLOW:")) {
+      return { ok: true, reason: null };
+    }
+    if (trimmed.startsWith("BLOCK:")) {
+      const reason = trimmed.slice("BLOCK:".length).trim() || text;
+      return {
+        ok: false,
+        reason: `Codex stop-time review found issues that still need fixes before ending the session: ${reason}`
+      };
+    }
   }
 
   return {
