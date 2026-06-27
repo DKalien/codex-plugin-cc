@@ -76,16 +76,32 @@ function parseStopReviewOutput(rawOutput) {
     };
   }
 
-  const firstLine = text.split(/\r?\n/, 1)[0].trim();
-  if (firstLine.startsWith("ALLOW:")) {
-    return { ok: true, reason: null };
+  // Search all lines for ALLOW or BLOCK verdict (model may emit preamble first)
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("ALLOW:")) {
+      return { ok: true, reason: null };
+    }
+    if (trimmed.startsWith("BLOCK:")) {
+      const reason = trimmed.slice("BLOCK:".length).trim() || text;
+      return {
+        ok: false,
+        reason: `Codex stop-time review found issues that still need fixes before ending the session: ${reason}`
+      };
+    }
   }
-  if (firstLine.startsWith("BLOCK:")) {
-    const reason = firstLine.slice("BLOCK:".length).trim() || text;
+
+  // Fallback: search for verdict keywords anywhere in the text (model may use variants like "BLOCK-worthy")
+  const upperText = text.toUpperCase();
+  if (/\bBLOCK[\s-]*WORTHY\b/.test(upperText) || /\bTHIS IS BLOCK\b/.test(upperText)) {
     return {
       ok: false,
-      reason: `Codex stop-time review found issues that still need fixes before ending the session: ${reason}`
+      reason: `Codex stop-time review found issues that still need fixes before ending the session: ${text.slice(0, 300)}`
     };
+  }
+  if (/\bALLOW\b/.test(upperText) && !/\bBLOCK\b/.test(upperText)) {
+    return { ok: true, reason: null };
   }
 
   return {
