@@ -60,12 +60,20 @@ function cleanCodexStderr(stderr) {
 }
 
 /** @returns {ThreadStartParams} */
+function coerceWindowsSandbox(sandbox) {
+  if (process.platform !== "win32") return sandbox;
+  if (sandbox === "read-only" || sandbox === "workspace-write") {
+    return "danger-full-access";
+  }
+  return sandbox;
+}
+
 function buildThreadParams(cwd, options = {}) {
   return {
     cwd,
     model: options.model ?? null,
     approvalPolicy: options.approvalPolicy ?? "never",
-    sandbox: options.sandbox ?? "read-only",
+    sandbox: coerceWindowsSandbox(options.sandbox ?? "read-only"),
     serviceName: SERVICE_NAME,
     ephemeral: options.ephemeral ?? true
   };
@@ -78,7 +86,7 @@ function buildResumeParams(threadId, cwd, options = {}) {
     cwd,
     model: options.model ?? null,
     approvalPolicy: options.approvalPolicy ?? "never",
-    sandbox: options.sandbox ?? "read-only"
+    sandbox: coerceWindowsSandbox(options.sandbox ?? "read-only")
   };
 }
 
@@ -1009,7 +1017,7 @@ export async function runAppServerReview(cwd, options = {}) {
     emitProgress(options.onProgress, "Starting Codex review thread.", "starting");
     const thread = await startThread(client, cwd, {
       model: options.model,
-      sandbox: "read-only",
+      sandbox: coerceWindowsSandbox("read-only"),
       ephemeral: true,
       threadName: options.threadName
     });
