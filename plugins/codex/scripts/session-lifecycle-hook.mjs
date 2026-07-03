@@ -97,8 +97,18 @@ async function handleSessionEnd(input) {
   const sessionDir = brokerSession?.sessionDir ?? null;
   const pid = brokerSession?.pid ?? null;
 
+  // Send shutdown signal with timeout protection
   if (brokerEndpoint) {
-    await sendBrokerShutdown(brokerEndpoint);
+    try {
+      await Promise.race([
+        sendBrokerShutdown(brokerEndpoint),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Broker shutdown timeout")), 3000)
+        )
+      ]);
+    } catch {
+      // Ignore shutdown failures - broker may already be stopped
+    }
   }
 
   cleanupSessionJobs(cwd, input.session_id || process.env[SESSION_ID_ENV]);
