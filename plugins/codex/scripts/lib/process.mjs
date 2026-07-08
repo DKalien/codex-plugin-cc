@@ -2,15 +2,10 @@ import { spawnSync } from "node:child_process";
 import process from "node:process";
 
 export function runCommand(command, args = [], options = {}) {
-  const useShell = process.platform === "win32" ? (process.env.SHELL || true) : false;
-  // On Windows, merge args into command string to avoid Node.js v25 DEP0190
-  // (spawnSync with args array + shell: true triggers the deprecation warning)
-  const effectiveCommand = useShell && args.length > 0
-    ? [command, ...args].join(" ")
-    : command;
-  const effectiveArgs = useShell && args.length > 0 ? [] : args;
+  // Allow callers to override shell behavior (e.g., git commands use shell: false for safety)
+  const useShell = options.shell ?? (process.platform === "win32" ? (process.env.SHELL || true) : false);
 
-  const result = spawnSync(effectiveCommand, effectiveArgs, {
+  const result = spawnSync(command, args, {
     cwd: options.cwd,
     env: options.env,
     encoding: "utf8",
