@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-This is the **Codex Plugin for Claude Code** (`@openai/codex-plugin-cc`) — a Claude Code plugin that wraps the [Codex CLI](https://developers.openai.com/codex/cli/) and [Codex app server](https://developers.openai.com/codex/app-server/) to enable code reviews and task delegation from within Claude Code. The plugin is distributed as a Claude Code marketplace plugin (not an npm package).
+This is the **Codex Plugin for Codex** (`@openai/codex-plugin-cc`) — a Codex plugin that wraps the [Codex CLI](https://developers.openai.com/codex/cli/) and [Codex app server](https://developers.openai.com/codex/app-server/) to enable code reviews and task delegation from within Codex. The plugin is distributed as a Codex marketplace plugin (not an npm package).
 
 ## Common Commands
 
@@ -32,14 +32,14 @@ npm run bump-version -- 1.0.6               # update version across all manifest
 
 The repo has a **marketplace layer** at the root and a **plugin layer** under `plugins/codex/`:
 
-- **Marketplace root** (`.claude-plugin/marketplace.json`): Defines the plugin marketplace metadata and points to `plugins/codex` as the plugin source.
+- **Marketplace root** (`.Codex-plugin/marketplace.json`): Defines the plugin marketplace metadata and points to `plugins/codex` as the plugin source.
 - **Plugin root** (`plugins/codex/`): Contains the actual plugin logic — commands, hooks, agents, skills, scripts, and schemas.
 
 ### Key Directories
 
 ```
 plugins/codex/
-  .claude-plugin/plugin.json    # Plugin manifest (name, version)
+  .Codex-plugin/plugin.json    # Plugin manifest (name, version)
   commands/*.md                  # Slash-command definitions (review, rescue, setup, etc.)
   agents/codex-rescue.md        # Subagent definition for task delegation
   hooks/hooks.json              # SessionStart, SessionEnd, Stop hooks
@@ -62,19 +62,19 @@ plugins/codex/
       args.mjs                   # Argument parsing utilities
       prompts.mjs                # Prompt template loading and interpolation
       workspace.mjs              # Workspace root resolution
-  skills/                        # Claude Code skills (codex-cli-runtime, gpt-5-4-prompting, etc.)
+  skills/                        # Codex skills (codex-cli-runtime, gpt-5-4-prompting, etc.)
 scripts/
   bump-version.mjs               # Version bump script (updates all 4 manifest files atomically)
 ```
 
 ### How Commands Work
 
-Each slash command (e.g., `/codex:review`) is defined as a markdown file in `plugins/codex/commands/`. These files use Claude Code's plugin command format with YAML frontmatter specifying:
+Each slash command (e.g., `/codex:review`) is defined as a markdown file in `plugins/codex/commands/`. These files use Codex's plugin command format with YAML frontmatter specifying:
 - `allowed-tools`: Which tools the command can use
-- `disable-model-invocation`: Whether Claude should not use model invocation
+- `disable-model-invocation`: Whether Codex should not use model invocation
 - `argument-hint`: Expected argument patterns
 
-The command markdown instructs Claude to invoke `codex-companion.mjs` via `Bash`. The companion script dispatches to the appropriate handler based on the subcommand.
+The command markdown instructs Codex to invoke `codex-companion.mjs` via `Bash`. The companion script dispatches to the appropriate handler based on the subcommand.
 
 ### App-Server Communication
 
@@ -94,7 +94,7 @@ Background tasks (reviews, rescue tasks) are tracked as "jobs" with:
 
 ### Review Gate (Optional Stop Hook)
 
-When enabled via `/codex:setup --enable-review-gate`, the `Stop` hook runs a Codex review before allowing Claude to stop. This creates a Claude↔Codex loop — enable only when actively monitoring.
+When enabled via `/codex:setup --enable-review-gate`, the `Stop` hook runs a Codex review before allowing Codex to stop. This creates a Codex↔Codex loop — enable only when actively monitoring.
 
 ## Development Notes
 
